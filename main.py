@@ -2,15 +2,18 @@ import tkinter as tk
 from tkinter import ttk 
 from tkinter import messagebox
 from tkinter import filedialog
+from cipher.keyschedule import generate_subkeys
+from cipher.sbox import print_log_sbox
+from cipher.sbox import generate_sbox
 import os
+import hashlib
 
 class CryptApp:
     def __init__(self, root):
         self.root = root
         self.root.title("Gerenciados de Criptografia da Inn Seguros")
-        self.root.geometry("600x400")
+        self.root.geometry("500x300")
         self.root.resizable(True, True)
-
         self.file_path = tk.StringVar()
         self.key = tk.StringVar()
         self.mode = tk.StringVar(value="encrypt")
@@ -44,7 +47,7 @@ class CryptApp:
             self.file_path.set(file)
         
     def entry_validation(self):
-        if not self.file_path.get or not os.path.isfile(self.file_path.get()):
+        if not self.file_path.get() or not os.path.isfile(self.file_path.get()):
             messagebox.showerror("Selecione um arquivo válido")
             return False
         if not self.key.get() or len(self.key.get()) != 8:
@@ -59,27 +62,31 @@ class CryptApp:
         file = self.file_path.get()
         key = self.key.get()
         mode = self.mode.get()
-
         try: 
+            subkeys = generate_subkeys(key)
             if mode == "encrypt":
-                messagebox.showinfo("Arquivo encriptado com sucesso")
+                messagebox.showinfo("Encriptação","Arquivo encriptado com sucesso")
             else:
-                messagebox.showinfo("Arquivo decriptado com sucesso")
+                messagebox.showinfo("Decriptação","Arquivo decriptado com sucesso")
 
             self.label_status.config(text="Processamento concluído", foreground="green")
         except Exception as e:
             messagebox.showerror(f"Algo deu errado no seguinte processamento: {str(e)}")
             self.label_status.config(text="Erro durante o processamento", foreground="red")
+        with open(file, 'rb') as f:
+            content = f.read()
+        seed = hashlib.sha256(content).digest
+        sbox = generate_sbox(seed)
+        sbox_log = print_log_sbox(sbox)
+        self.label_status.config(text=sbox_log)
 
     def exit_system(self):
-        if messagebox.askyesno("Tem certeza que deseja sair?"):
+        if messagebox.askyesno("Sair","Tem certeza que deseja sair?"):
             self.root.destroy()
 
 if __name__ == "__main__":
     root = tk.Tk()
     app = CryptApp(root)
     root.mainloop()
-            
-
         
 

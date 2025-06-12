@@ -1,18 +1,18 @@
 from cipher.keyschedule import generate_subkeys
 from cipher.sbox import generate_sbox, generate_reverse_sbox
-from cipher.keyschedule import permute, inverse_permute
+from cipher.permutation import permute, inverse_permute
 import random
 
 def encrypt_block(block: int, subkeys: list, sbox:dict) -> int:
     for i in range(3):
         block ^= subkeys[i]
         block = substitute_block(block, sbox)
-        block = permute_block(block, subkeys[i])    
+        block = permute(block, subkeys[i])    
     return block
 
 def decrypt_block(block: int, subkeys: list, sbox_inv: dict) -> int:
     for i in reversed(range(3)):
-        block = inverse_permute_block(block, subkeys[i])
+        block = inverse_permute(block, subkeys[i])
         block = inverse_substitute_block(block, sbox_inv)
         block ^= subkeys[i]
     return block

@@ -1,5 +1,6 @@
 from cipher.keyschedule import generate_subkeys
-from cipher.sbox import generate_sbox
+from cipher.sbox import generate_sbox, generate_reverse_sbox
+from cipher.keyschedule import permute, inverse_permute
 import random
 
 def encrypt_block(block: int, subkeys: list, sbox:dict) -> int:
@@ -68,10 +69,28 @@ def encrypt_file(file_path: str, key: str):
         block_bytes = data[i:i+4]
         block_int = int.from_bytes(block_bytes, 'big')
         encrypted_block = encrypt_block(block_int, subkeys, sbox)
-        encrypted_data += encrypt_block.to_byes(4, 'big')
+        encrypted_data += encrypted_block.to_byes(4, 'big')
     output_path = file_path + '.enc'
     with open(output_path, 'wb') as f:
         f.write(encrypted_data)
     return output_path
     
-def decrypt_file():
+def decrypt_file(file_path: str, key: str):
+    with open(file_path, 'rb') as f:
+        encrypted_data = f.read()
+    subkeys = generate_subkeys(key)
+    sbox = generate_sbox(key.encode())
+    sbox_inv = generate_reverse_sbox(sbox)
+    decrypted_data = b""
+    for i in range(0, len(encrypted_data), 4):
+        block_bytes = encrypted_data [i:i+4]
+        block_int = int.from_bytes(block_bytes, 'big')
+        decrypted_block = decrypt_block(block_int, subkeys, sbox_inv)
+        decrypted_data += decrypted_block.to_bytes(4, 'big')
+    padding_len = decrypted_data[-1]
+    decrypted_data = decrypted_data[:- padding_len]
+    output_path = file_path.replace(".enc", "") + ".dec"
+    with open(output_path, 'wb') as f: 
+        f.write(decrypted_data)
+    return output_path
+        

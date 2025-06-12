@@ -3,8 +3,9 @@ from tkinter import ttk
 from tkinter import messagebox
 from tkinter import filedialog
 from cipher.keyschedule import generate_subkeys
-from cipher.sbox import print_log_sbox
+from cipher.sbox import print_log_sbox, generate_sbox
 from cipher.sbox import generate_sbox
+from cipher.core import encrypt_block, decypt_block, substitute_block, inverse_substitute_block, permute_block, inverse_permute_block, encrypt_file, decrypt_file
 import os
 import hashlib
 
@@ -37,7 +38,9 @@ class CryptApp:
         ttk.Button(self.root, text="Executar",  command=self.execute).pack(pady=15)
         self.label_status = ttk.Label(self.root, text="", foreground="green")
         self.label_status.pack(pady=5)
-        
+        self.text_log = tk.Text(self.root, height=10, width=60, state='disabled')
+        self.text_log = tk.Text(self.root, height=10, width=60, state='disabled')
+
     def choose_file(self):
         file = filedialog.askopenfilename(
             title="Selecione o arquivo",
@@ -62,23 +65,26 @@ class CryptApp:
         file = self.file_path.get()
         key = self.key.get()
         mode = self.mode.get()
-        try: 
-            subkeys = generate_subkeys(key)
+        try:
             if mode == "encrypt":
-                messagebox.showinfo("Encriptação","Arquivo encriptado com sucesso")
+                output_path = encrypt_file(file, key)
+                messagebox.showinfo("Encriptação", f"Arquivo encriptado com sucesso!\nSalvo em:\n{output_path}")
             else:
-                messagebox.showinfo("Decriptação","Arquivo decriptado com sucesso")
-
-            self.label_status.config(text="Processamento concluído", foreground="green")
+                output_path = decrypt_file(file, key)
+                messagebox.showinfo("Decriptação", f"Arquivo decriptado com sucesso!\nSalvo em:\n{output_path}")
+            self.label_status.config(text=f"Processamento concluído.\nArquivo salvo em:\n{output_path}", foreground="green")
         except Exception as e:
             messagebox.showerror(f"Algo deu errado no seguinte processamento: {str(e)}")
             self.label_status.config(text="Erro durante o processamento", foreground="red")
         with open(file, 'rb') as f:
             content = f.read()
-        seed = hashlib.sha256(content).digest
+        seed = hashlib.sha256(content).digest()
         sbox = generate_sbox(seed)
         sbox_log = print_log_sbox(sbox)
-        self.label_status.config(text=sbox_log)
+        self.text_log.config(state='normal')
+        self.text_log.delete(1.0, tk.END)
+        self.text_log.insert(tk.END, sbox_log)
+        self.text_log.config(state='disabled')
 
     def exit_system(self):
         if messagebox.askyesno("Sair","Tem certeza que deseja sair?"):

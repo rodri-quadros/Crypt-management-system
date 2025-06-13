@@ -5,7 +5,7 @@ from tkinter import filedialog
 from cipher.keyschedule import generate_subkeys
 from cipher.sbox import print_log_sbox, generate_sbox
 from cipher.sbox import generate_sbox
-from cipher.core import encrypt_block, decypt_block, substitute_block, inverse_substitute_block, permute_block, inverse_permute_block, encrypt_file, decrypt_file
+from cipher.core import encrypt_file, decrypt_file
 import os
 import hashlib
 
@@ -94,5 +94,3 @@ if __name__ == "__main__":
     root = tk.Tk()
     app = CryptApp(root)
     root.mainloop()
-        
-

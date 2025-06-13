@@ -69,7 +69,7 @@ def encrypt_file(file_path: str, key: str):
         block_bytes = data[i:i+4]
         block_int = int.from_bytes(block_bytes, 'big')
         encrypted_block = encrypt_block(block_int, subkeys, sbox)
-        encrypted_data += encrypted_block.to_byes(4, 'big')
+        encrypted_data += encrypted_block.to_bytes(4, 'big')
     output_path = file_path + '.enc'
     with open(output_path, 'wb') as f:
         f.write(encrypted_data)

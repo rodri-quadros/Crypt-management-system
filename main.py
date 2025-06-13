@@ -8,6 +8,7 @@ from cipher.sbox import generate_sbox
 from cipher.core import encrypt_file, decrypt_file
 import os
 import hashlib
+import random
 
 class CryptApp:
     def __init__(self, root):
@@ -27,10 +28,6 @@ class CryptApp:
         frame_file.pack(pady=5)
         ttk.Entry(frame_file, textvariable=self.file_path, width=40, state="readonly").pack(side="left", padx=5)
         ttk.Button(frame_file, text="Selecione o arquivo", command=self.choose_file).pack(side="left") 
-        key_frame = ttk.Frame(self.root)
-        key_frame.pack(pady=10)
-        ttk.Label(key_frame, text="32bits").pack(side="left", padx=5)
-        ttk.Entry(key_frame, textvariable=self.key, width=30).pack(side="left", padx=5)
         frame_mode = ttk.Frame(self.root)
         frame_mode.pack(pady=10)
         ttk.Radiobutton(frame_mode, text="Realizar Encriptação", variable=self.mode, value="encrypt").pack(side="left", padx=20)
@@ -51,13 +48,9 @@ class CryptApp:
         
     def entry_validation(self):
         if not self.file_path.get() or not os.path.isfile(self.file_path.get()):
-            messagebox.showerror("Selecione um arquivo válido")
+            messagebox.showerror("Aviso","Selecione um arquivo válido")
             return False
-        if not self.key.get() or len(self.key.get()) != 8:
-            messagebox.showerror("A chave deve ter 8 caracteres hexadecimais (ou seja, 32 bits)")
-            return False
-        else:
-            return True
+        return True
             
     def execute(self):
         if not self.entry_validation():
@@ -67,24 +60,26 @@ class CryptApp:
         mode = self.mode.get()
         try:
             if mode == "encrypt":
-                output_path = encrypt_file(file, key)
+                generated_key = ''.join(random.choices('0123456789ABCDEF', k=8))
+                self.key.set(generated_key)
+                output_path = encrypt_file(file, generated_key)
                 messagebox.showinfo("Encriptação", f"Arquivo encriptado com sucesso!\nSalvo em:\n{output_path}")
             else:
-                output_path = decrypt_file(file, key)
+                output_path = decrypt_file(file, self.key.get())
                 messagebox.showinfo("Decriptação", f"Arquivo decriptado com sucesso!\nSalvo em:\n{output_path}")
             self.label_status.config(text=f"Processamento concluído.\nArquivo salvo em:\n{output_path}", foreground="green")
+            with open(file, 'rb') as f:
+                content = f.read()
+            seed = hashlib.sha256(content).digest()
+            sbox = generate_sbox(seed)
+            sbox_log = print_log_sbox(sbox)
+            self.text_log.config(state='normal')
+            self.text_log.delete(1.0, tk.END)
+            self.text_log.insert(tk.END, sbox_log)
+            self.text_log.config(state='disabled')
         except Exception as e:
-            messagebox.showerror(f"Algo deu errado no seguinte processamento: {str(e)}")
+            messagebox.showerror("Erro",f"Algo deu errado no seguinte processamento: {str(e)}")
             self.label_status.config(text="Erro durante o processamento", foreground="red")
-        with open(file, 'rb') as f:
-            content = f.read()
-        seed = hashlib.sha256(content).digest()
-        sbox = generate_sbox(seed)
-        sbox_log = print_log_sbox(sbox)
-        self.text_log.config(state='normal')
-        self.text_log.delete(1.0, tk.END)
-        self.text_log.insert(tk.END, sbox_log)
-        self.text_log.config(state='disabled')
 
     def exit_system(self):
         if messagebox.askyesno("Sair","Tem certeza que deseja sair?"):

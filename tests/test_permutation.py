@@ -6,7 +6,7 @@ import sys
 def test_inverse_permutation():
     block = random.getrandbits(32)
     subkey = random.getrandbits(32)
-    permuted = permuted(block, subkey)
+    permuted = permute(block, subkey)
     recovered = inverse_permute(permuted, subkey)
     assert recovered == block, "não foi possivel recuperar o block original"
 

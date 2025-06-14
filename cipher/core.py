@@ -3,11 +3,17 @@ from cipher.sbox import generate_sbox, generate_reverse_sbox
 from cipher.permutation import permute, inverse_permute
 import random
 
-def encrypt_block(block: int, subkeys: list, sbox:dict) -> int:
+def encrypt_block(block: int, subkeys: list, sbox:dict, verbose_log: list = None) -> int:
     for i in range(3):
         block ^= subkeys[i]
+        if verbose_log is not None:
+            print(f"rodada {i+1} - após XOR {block:08x}")
         block = substitute_block(block, sbox)
+        if verbose_log is not None:
+            print(f"rodada {i+1} - após substituição {block:08x}")
         block = permute(block, subkeys[i])    
+        if verbose_log is not None:
+            print(f"rodada {i+1} - após permutação {block:08x}")
     return block
 
 def decrypt_block(block: int, subkeys: list, sbox_inv: dict) -> int:
@@ -32,29 +38,6 @@ def inverse_substitute_block(block: int, sbox_inv: dict) -> int:
         substitution = sbox_inv[nibble]
         new_block_generated |= (substitution << (i * 4))
     return new_block_generated
-
-def permute_block(block: int, subkey: int) -> int:
-    positions = list(range(32))
-    random.seed(subkey)
-    random.shuffle(positions)
-    new_block = 0
-    for i in range(32):
-        if (block >> i) & 1:
-            new_block |= (1 << positions[i])
-    return new_block
-
-def inverse_permute_block(block: int, subkey: int) -> int:
-    positions = list(range(32))
-    random.seed(subkey)
-    random.shuffle(positions_inv)
-    positions_inv = [0] * 32
-    for i in range(32):
-        positions_inv[positions[i]] = i
-    new_block = 0
-    for i in range(32):
-        if (block >> i) & 1:
-            new_block |= (1 << positions_inv[i])
-    return new_block
 
 def encrypt_file(file_path: str, key: str):
     with open(file_path, 'rb') as f:

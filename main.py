@@ -5,7 +5,7 @@ from tkinter import filedialog
 from cipher.keyschedule import generate_subkeys
 from cipher.sbox import print_log_sbox, generate_sbox
 from cipher.sbox import generate_sbox
-from cipher.core import encrypt_file, decrypt_file
+from cipher.core import encrypt_file, decrypt_file, encrypt_block
 import os
 import hashlib
 import random
@@ -33,6 +33,7 @@ class CryptApp:
         ttk.Radiobutton(frame_mode, text="Realizar Encriptação", variable=self.mode, value="encrypt").pack(side="left", padx=20)
         ttk.Radiobutton(frame_mode, text="Realizar Decriptação", variable=self.mode, value="decrypt").pack(side="left", padx=20)
         ttk.Button(self.root, text="Executar",  command=self.execute).pack(pady=15)
+        ttk.Button(self.root, text="Mostrar Rounds", command=self.mostrar_rounds).pack(pady=5)
         self.label_status = ttk.Label(self.root, text="", foreground="green")
         self.label_status.pack(pady=5)
         self.text_log = tk.Text(self.root, height=10, width=60, state='disabled')
@@ -51,6 +52,29 @@ class CryptApp:
             messagebox.showerror("Aviso","Selecione um arquivo válido")
             return False
         return True
+    
+    def mostrar_rounds(self):
+        block = 0x12345678  
+        key_a = 'A1B2C3D4'
+        key_b = 'A1B2C3D5'  
+        log_a, log_b = [], []
+        sub_a = generate_subkeys(key_a)
+        sbox_a = generate_sbox(key_a.encode())
+        encrypt_block(block, sub_a, sbox_a, verbose_log=log_a)
+        sub_b = generate_subkeys(key_b)
+        sbox_b = generate_sbox(key_b.encode())
+        encrypt_block(block, sub_b, sbox_b, verbose_log=log_b)
+        janela = tk.Toplevel(self.root)
+        janela.title("Resultado Round a Round")
+        janela.geometry("800x400")
+        txt = tk.Text(janela, wrap="none", font=("Courier", 10))
+        txt.pack(fill="both", expand=True)
+        txt.insert("end", f"Chave A: {key_a}\nChave B: {key_b}\n\n")
+        txt.insert("end", f"{'Round':<6} {'Chave A':<35} {'Chave B':<35}\n")
+        txt.insert("end", "-" * 80 + "\n")
+        for i in range(len(log_a)):
+            txt.insert("end", f"{i+1:<6} {log_a[i]:<35} {log_b[i]}\n")
+        txt.config(state="disabled")
             
     def execute(self):
         if not self.entry_validation():

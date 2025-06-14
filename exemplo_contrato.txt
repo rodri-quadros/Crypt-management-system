@@ -1,0 +1,14 @@
+Contrato de Seguro - Inn Seguros
+
+Cliente: João da Silva
+CPF: 123.456.789-00
+Data de Emissão: 07/06/2025
+Valor Segurado: R$ 100.000,00
+Cobertura: Incêndio, Roubo e Danos Elétricos
+
+Condições gerais:
+1. O seguro cobre eventos ocorridos após a data de emissão.
+2. A franquia aplicável será de R$ 2.000,00 por ocorrência.
+3. Pagamentos em atraso acarretam suspensão de cobertura.
+
+Assinatura: ________________
